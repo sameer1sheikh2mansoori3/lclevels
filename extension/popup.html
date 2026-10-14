@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LC Levels</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo">LC</div>
+        <div>
+          <h1>LC Levels</h1>
+          <span class="tag">CF Ladders for LeetCode</span>
+        </div>
+      </div>
+      <div class="stats" id="statsBadge">
+        <span id="solvedCount">0</span>/<span id="totalCount">0</span>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <div class="controls">
+      <!-- Search -->
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search problem or ID...">
+      </div>
+
+      <!-- Contest Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-contest="all">All Contests</button>
+        <button class="tab" data-contest="weekly">Weekly</button>
+        <button class="tab" data-contest="biweekly">Biweekly</button>
+      </div>
+
+      <!-- Question Index Buttons -->
+      <div class="question-indices">
+        <span class="label">Question:</span>
+        <button class="q-btn active" data-q="ALL">All</button>
+        <button class="q-btn" data-q="Q1">Q1</button>
+        <button class="q-btn" data-q="Q2">Q2</button>
+        <button class="q-btn" data-q="Q3">Q3</button>
+        <button class="q-btn" data-q="Q4">Q4</button>
+      </div>
+
+      <!-- Level Ladder Selector -->
+      <div class="level-select-row">
+        <select id="levelSelect">
+          <option value="all">All Levels (1000 - 3200+)</option>
+          <option value="1">Level 1: Newbie (&lt; 1300)</option>
+          <option value="2">Level 2: Pupil (1300 - 1499)</option>
+          <option value="3">Level 3: Apprentice (1500 - 1699)</option>
+          <option value="4">Level 4: Specialist (1700 - 1899)</option>
+          <option value="5">Level 5: Expert (1900 - 2099)</option>
+          <option value="6">Level 6: Candidate Master (2100 - 2399)</option>
+          <option value="7">Level 7: Grandmaster (2400+)</option>
+        </select>
+        <button id="randomBtn" title="Pick Random Unsolved Problem">🎲 Random</button>
+      </div>
+    </div>
+
+    <!-- Results Subheader -->
+    <div class="results-header">
+      <span id="resultCount">0 problems</span>
+      <span class="sort-info">Sorted: Difficulty ↑ (Ascending)</span>
+    </div>
+
+    <!-- Problems List -->
+    <div class="problem-list" id="problemList">
+      <div class="loading">Loading problems...</div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
