@@ -152,15 +152,30 @@ export const Header: React.FC<HeaderProps> = ({
           {/* User Account / Auth Button */}
           {user ? (
             <div className="flex items-center gap-2 bg-slate-800/80 border border-slate-700/60 rounded-xl px-2.5 py-1.5 text-xs">
-              <div className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold text-[10px]">
-                {user.name.charAt(0).toUpperCase()}
+              {user.leetcodeAvatar ? (
+                <img
+                  src={user.leetcodeAvatar}
+                  alt={user.name}
+                  className="w-5 h-5 rounded-full object-cover border border-amber-500/50"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold text-[10px]">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-slate-200 max-w-[100px] truncate" title={user.email}>
+                  {user.name}
+                </span>
+                {user.leetcodeRating && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold" title={user.leetcodeBadge || 'Contest Rating'}>
+                    {user.leetcodeRating}
+                  </span>
+                )}
               </div>
-              <span className="font-medium text-slate-200 max-w-[100px] truncate" title={user.email}>
-                {user.name}
-              </span>
               <button
                 onClick={onLogout}
-                className="text-slate-400 hover:text-rose-400 p-0.5 rounded transition-colors"
+                className="text-slate-400 hover:text-rose-400 p-0.5 rounded transition-colors ml-1"
                 title="Log Out"
               >
                 <LogOut className="w-3.5 h-3.5" />

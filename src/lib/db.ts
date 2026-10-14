@@ -11,6 +11,11 @@ export interface UserRecord {
   solved: number[];
   starred: number[];
   notes: Record<number, string>;
+  leetcodeUsername?: string;
+  leetcodeRating?: number;
+  leetcodeBadge?: string;
+  leetcodeAvatar?: string;
+  leetcodeRanking?: number;
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -118,3 +123,68 @@ export function updateUserProgress(
   saveUsers(users);
   return users[index];
 }
+
+export function findUserByLeetcodeUsername(username: string): UserRecord | undefined {
+  const users = getAllUsers();
+  return users.find((u) => u.leetcodeUsername?.toLowerCase() === username.toLowerCase());
+}
+
+export function loginOrCreateLeetcodeUser(data: {
+  username: string;
+  realName?: string;
+  avatar?: string;
+  rating?: number;
+  badge?: string;
+  ranking?: number;
+  mergeSolved?: number[];
+  mergeStarred?: number[];
+  mergeNotes?: Record<number, string>;
+}): UserRecord {
+  const users = getAllUsers();
+  let user = findUserByLeetcodeUsername(data.username);
+
+  if (user) {
+    // Update existing user's LeetCode stats
+    user.name = data.realName || user.name || data.username;
+    if (data.avatar) user.leetcodeAvatar = data.avatar;
+    if (data.rating) user.leetcodeRating = Math.round(data.rating);
+    if (data.badge) user.leetcodeBadge = data.badge;
+    if (data.ranking) user.leetcodeRanking = data.ranking;
+
+    if (data.mergeSolved && data.mergeSolved.length > 0) {
+      user.solved = Array.from(new Set([...user.solved, ...data.mergeSolved]));
+    }
+    if (data.mergeStarred && data.mergeStarred.length > 0) {
+      user.starred = Array.from(new Set([...user.starred, ...data.mergeStarred]));
+    }
+    if (data.mergeNotes && Object.keys(data.mergeNotes).length > 0) {
+      user.notes = { ...user.notes, ...data.mergeNotes };
+    }
+
+    saveUsers(users);
+    return user;
+  }
+
+  // Create new user for this LeetCode account
+  const newUser: UserRecord = {
+    id: 'lc_' + data.username.toLowerCase(),
+    name: data.realName || data.username,
+    email: `${data.username.toLowerCase()}@leetcode.user`,
+    passwordHash: '',
+    createdAt: new Date().toISOString(),
+    solved: data.mergeSolved || [],
+    starred: data.mergeStarred || [],
+    notes: data.mergeNotes || {},
+    leetcodeUsername: data.username,
+    leetcodeRating: data.rating ? Math.round(data.rating) : undefined,
+    leetcodeBadge: data.badge,
+    leetcodeAvatar: data.avatar,
+    leetcodeRanking: data.ranking,
+  };
+
+  users.push(newUser);
+  saveUsers(users);
+  return newUser;
+}
+
+

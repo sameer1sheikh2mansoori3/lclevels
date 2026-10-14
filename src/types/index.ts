@@ -66,6 +66,11 @@ export interface UserSession {
   solved: number[];
   starred: number[];
   notes: Record<number, string>;
+  leetcodeUsername?: string;
+  leetcodeRating?: number;
+  leetcodeBadge?: string;
+  leetcodeAvatar?: string;
+  leetcodeRanking?: number;
 }
 
 export type ViewMode = 'sheet' | 'contests' | 'table';

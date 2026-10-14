@@ -28,9 +28,15 @@ export async function GET(req: Request) {
         solved: user.solved,
         starred: user.starred,
         notes: user.notes,
+        leetcodeUsername: user.leetcodeUsername,
+        leetcodeRating: user.leetcodeRating,
+        leetcodeBadge: user.leetcodeBadge,
+        leetcodeAvatar: user.leetcodeAvatar,
+        leetcodeRanking: user.leetcodeRanking,
       },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
   }
 }
+
