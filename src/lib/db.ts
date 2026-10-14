@@ -129,8 +129,20 @@ export function findUserByLeetcodeUsername(username: string): UserRecord | undef
   return users.find((u) => u.leetcodeUsername?.toLowerCase() === username.toLowerCase());
 }
 
+export function findUserByIdentifier(identifier: string): UserRecord | undefined {
+  const clean = identifier.trim().toLowerCase();
+  const users = getAllUsers();
+  return users.find(
+    (u) =>
+      u.email.toLowerCase() === clean ||
+      u.leetcodeUsername?.toLowerCase() === clean ||
+      u.name.toLowerCase() === clean
+  );
+}
+
 export function loginOrCreateLeetcodeUser(data: {
   username: string;
+  password?: string;
   realName?: string;
   avatar?: string;
   rating?: number;
@@ -141,9 +153,22 @@ export function loginOrCreateLeetcodeUser(data: {
   mergeNotes?: Record<number, string>;
 }): UserRecord {
   const users = getAllUsers();
-  let user = findUserByLeetcodeUsername(data.username);
+  const index = users.findIndex((u) => u.leetcodeUsername?.toLowerCase() === data.username.toLowerCase());
 
-  if (user) {
+  if (index !== -1) {
+    const user = users[index];
+    // If a password was provided, verify or set it
+    if (data.password && data.password.trim()) {
+      if (user.passwordHash) {
+        if (user.passwordHash !== hashPassword(data.password)) {
+          throw new Error('Incorrect password for this LeetCode handle.');
+        }
+      } else {
+        // First time entering a password for this user
+        user.passwordHash = hashPassword(data.password);
+      }
+    }
+
     // Update existing user's LeetCode stats
     user.name = data.realName || user.name || data.username;
     if (data.avatar) user.leetcodeAvatar = data.avatar;
@@ -152,13 +177,13 @@ export function loginOrCreateLeetcodeUser(data: {
     if (data.ranking) user.leetcodeRanking = data.ranking;
 
     if (data.mergeSolved && data.mergeSolved.length > 0) {
-      user.solved = Array.from(new Set([...user.solved, ...data.mergeSolved]));
+      user.solved = Array.from(new Set([...(user.solved || []), ...data.mergeSolved]));
     }
     if (data.mergeStarred && data.mergeStarred.length > 0) {
-      user.starred = Array.from(new Set([...user.starred, ...data.mergeStarred]));
+      user.starred = Array.from(new Set([...(user.starred || []), ...data.mergeStarred]));
     }
     if (data.mergeNotes && Object.keys(data.mergeNotes).length > 0) {
-      user.notes = { ...user.notes, ...data.mergeNotes };
+      user.notes = { ...(user.notes || {}), ...data.mergeNotes };
     }
 
     saveUsers(users);
@@ -170,7 +195,7 @@ export function loginOrCreateLeetcodeUser(data: {
     id: 'lc_' + data.username.toLowerCase(),
     name: data.realName || data.username,
     email: `${data.username.toLowerCase()}@leetcode.user`,
-    passwordHash: '',
+    passwordHash: data.password && data.password.trim() ? hashPassword(data.password) : '',
     createdAt: new Date().toISOString(),
     solved: data.mergeSolved || [],
     starred: data.mergeStarred || [],

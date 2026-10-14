@@ -1,22 +1,23 @@
 import { NextResponse } from 'next/server';
-import { findUserByEmail, hashPassword, generateToken, updateUserProgress } from '@/lib/db';
+import { findUserByIdentifier, hashPassword, generateToken, updateUserProgress } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { email, password, mergeSolved, mergeStarred, mergeNotes } = body;
 
-    if (!email || !password) {
+    const identifier = (email || '').trim();
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Username/Email and password are required' },
         { status: 400 }
       );
     }
 
-    const user = findUserByEmail(email);
+    const user = findUserByIdentifier(identifier);
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'Invalid username/email or password' },
         { status: 401 }
       );
     }

@@ -23,6 +23,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const [tab, setTab] = useState<'leetcode' | 'login' | 'signup'>('leetcode');
   const [lcUsername, setLcUsername] = useState('');
+  const [lcPassword, setLcPassword] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,6 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: lcUsername,
+          password: lcPassword,
           mergeSolved: currentGuestSolved,
           mergeStarred: currentGuestStarred,
           mergeNotes: currentGuestNotes,
@@ -207,12 +209,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
-        {/* TAB 1: LEETCODE USERNAME LOGIN */}
+        {/* TAB 1: LEETCODE USERNAME & PASSWORD LOGIN */}
         {tab === 'leetcode' && (
-          <form onSubmit={handleLeetcodeSubmit} className="space-y-4">
+          <form onSubmit={handleLeetcodeSubmit} className="space-y-3.5">
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1">
-                Your LeetCode Username
+                LeetCode Username
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 font-mono text-xs">
@@ -223,12 +225,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   required
                   value={lcUsername}
                   onChange={(e) => setLcUsername(e.target.value)}
-                  placeholder="e.g. sameer234, tourist, neal_wu"
+                  placeholder="e.g. sameer234"
                   className="w-full pl-8 pr-3.5 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 font-mono"
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1.5">
-                No password required. We verify your public LeetCode profile to import your avatar, contest rating, and rank.
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                  <Lock className="w-3.5 h-3.5" />
+                </div>
+                <input
+                  type="password"
+                  value={lcPassword}
+                  onChange={(e) => setLcPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500"
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+                Connects directly to your LeetCode profile. Your live contest rating, avatar, and solved contest questions are automatically synced!
               </p>
             </div>
 
@@ -238,11 +258,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-xs shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-60"
             >
               {loading ? (
-                <span>Fetching LeetCode Profile...</span>
+                <span>Logging in & Syncing LeetCode...</span>
               ) : (
                 <>
                   <Code2 className="w-4 h-4" />
-                  <span>Connect & Login with LeetCode</span>
+                  <span>Login with LeetCode Account</span>
                 </>
               )}
             </button>

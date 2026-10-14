@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "LC Levels - LeetCode Contest Rating Ladders",
-  "version": "1.0.0",
-  "description": "Filter LeetCode contest questions by Weekly/Biweekly, Q1-Q4, sorted in increasing order of difficulty.",
+  "version": "1.1.0",
+  "description": "Filter LeetCode contest questions by Weekly/Biweekly, Q1-Q4, sorted in increasing order of difficulty with 1-click LeetCode sync.",
   "icons": {
     "48": "icon.png",
     "128": "icon.png"
@@ -16,7 +16,11 @@
     "default_title": "LC Levels"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "cookies"
+  ],
+  "host_permissions": [
+    "https://leetcode.com/*",
+    "http://localhost:3000/*"
   ]
 }
-

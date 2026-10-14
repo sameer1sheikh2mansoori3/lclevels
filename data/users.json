@@ -1,13 +1,29 @@
 [
   {
     "id": "lc_sameer234",
-    "name": "sameer234",
+    "name": "BOJO",
     "email": "sameer234@leetcode.user",
-    "passwordHash": "",
+    "passwordHash": "a42b3997e85b8a483616b66e7fc25fe652235c2ccede822fcf94710ea167bd1f",
     "createdAt": "2026-10-14T14:52:12.620Z",
-    "solved": [],
+    "solved": [
+      4066,
+      1395,
+      1670,
+      856,
+      2102,
+      981,
+      1146,
+      3986,
+      3989,
+      3987,
+      767,
+      1268
+    ],
     "starred": [],
     "notes": {},
-    "leetcodeUsername": "sameer234"
+    "leetcodeUsername": "sameer234",
+    "leetcodeAvatar": "https://assets.leetcode.com/users/sameer234/avatar_1710138666.png",
+    "leetcodeRating": 1557,
+    "leetcodeRanking": 57576
   }
 ]

@@ -231,5 +231,79 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // LeetCode Sync Button
+  const syncBtn = document.getElementById('syncLeetCodeBtn');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', async () => {
+      syncBtn.textContent = '...';
+      syncBtn.disabled = true;
+
+      try {
+        let cookieVal = '';
+        if (typeof chrome !== 'undefined' && chrome.cookies) {
+          try {
+            const cookie = await new Promise((resolve) => {
+              chrome.cookies.get({ url: 'https://leetcode.com', name: 'LEETCODE_SESSION' }, resolve);
+            });
+            if (cookie && cookie.value) {
+              cookieVal = cookie.value;
+            }
+          } catch (e) {}
+        }
+
+        const fetchHeaders = {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        };
+        if (cookieVal) {
+          fetchHeaders['Cookie'] = `LEETCODE_SESSION=${cookieVal}`;
+        }
+
+        const res = await fetch('https://leetcode.com/api/problems/all/', {
+          headers: fetchHeaders,
+          credentials: 'include',
+        });
+
+        if (!res.ok) {
+          throw new Error('Please open leetcode.com in Chrome and log in first.');
+        }
+
+        const data = await res.json();
+        if (data && Array.isArray(data.stat_status_pairs)) {
+          const acList = [];
+          for (const item of data.stat_status_pairs) {
+            if (item.status === 'ac') {
+              const fid = Number(item.stat?.frontend_question_id);
+              if (!isNaN(fid)) {
+                acList.push(fid);
+                solvedIds.add(fid);
+              }
+            }
+          }
+
+          saveSolved();
+          render();
+
+          // Push to web app if running
+          try {
+            await fetch('http://localhost:3000/api/leetcode/import', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ solvedIds: acList }),
+            });
+          } catch (e) {}
+
+          alert(`🎉 Successfully synced ${acList.length} solved problems!`);
+        } else {
+          throw new Error('Could not parse LeetCode response.');
+        }
+      } catch (err) {
+        alert(`Sync Note: ${err.message}`);
+      } finally {
+        syncBtn.textContent = '⚡ Sync';
+        syncBtn.disabled = false;
+      }
+    });
+  }
 });
 

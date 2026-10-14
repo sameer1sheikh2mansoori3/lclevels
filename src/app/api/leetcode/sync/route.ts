@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyToken, findUserById, updateUserProgress } from '@/lib/db';
+import { verifyToken, findUserById, updateUserProgress, getAllUsers, findUserByLeetcodeUsername } from '@/lib/db';
 import problemsData from '@/data/problems.json';
 
 const problemsList = problemsData as Array<{ id: number; titleSlug: string }>;
@@ -13,7 +13,7 @@ for (const p of problemsList) {
 
 const RECENT_AC_QUERY = `
   query getRecentAc($username: String!) {
-    recentAcSubmissionList(username: $username, limit: 100) {
+    recentAcSubmissionList(username: $username, limit: 20) {
       id
       title
       titleSlug
@@ -44,22 +44,90 @@ export async function POST(req: Request) {
       }
     }
 
-    const body = await req.json();
-    const { username, sessionCookie, currentSolved = [] } = body;
+    const body = await req.json().catch(() => ({}));
+    const { username, sessionCookie, currentSolved = [], solvedIds, rawText } = body;
 
     let targetUsername = (username || '').trim();
     let userRecord = userId ? findUserById(userId) : null;
+
+    if (!userRecord && targetUsername) {
+      userRecord = findUserByLeetcodeUsername(targetUsername);
+      if (userRecord) userId = userRecord.id;
+    }
+
+    if (!userRecord) {
+      const all = getAllUsers();
+      if (all.length === 1) {
+        userRecord = all[0];
+        userId = userRecord.id;
+      }
+    }
 
     if (!targetUsername && userRecord?.leetcodeUsername) {
       targetUsername = userRecord.leetcodeUsername;
     }
 
     const solvedProblemIds = new Set<number>(currentSolved);
+    // Also include what is currently stored in userRecord
+    if (userRecord?.solved) {
+      for (const id of userRecord.solved) {
+        solvedProblemIds.add(id);
+      }
+    }
+
     let newlyFoundCount = 0;
-    let syncMode: 'full_session' | 'recent_public' = 'recent_public';
+    let syncMode: 'full_session' | 'recent_public' | 'manual_paste' = 'recent_public';
     let totalAcReported = 0;
 
-    // METHOD 1: Full sync using LEETCODE_SESSION cookie (if provided)
+    // METHOD 1: Direct problem IDs passed
+    if (Array.isArray(solvedIds) && solvedIds.length > 0) {
+      syncMode = 'manual_paste';
+      for (const item of solvedIds) {
+        const num = Number(item);
+        if (!isNaN(num) && idSet.has(num)) {
+          if (!solvedProblemIds.has(num)) {
+            solvedProblemIds.add(num);
+            newlyFoundCount++;
+          }
+        }
+      }
+    }
+
+    // METHOD 2: Raw text / URLs / Slugs pasted
+    if (typeof rawText === 'string' && rawText.trim()) {
+      syncMode = 'manual_paste';
+      const urlRegex = /leetcode\.com\/problems\/([a-z0-9\-]+)/gi;
+      let match;
+      while ((match = urlRegex.exec(rawText)) !== null) {
+        const slug = match[1].toLowerCase();
+        const pid = slugToIdMap.get(slug);
+        if (pid && !solvedProblemIds.has(pid)) {
+          solvedProblemIds.add(pid);
+          newlyFoundCount++;
+        }
+      }
+
+      const tokens = rawText.split(/[\s,;|]+/);
+      for (const token of tokens) {
+        const clean = token.trim().toLowerCase();
+        if (!clean) continue;
+        const num = Number(clean);
+        if (!isNaN(num) && idSet.has(num)) {
+          if (!solvedProblemIds.has(num)) {
+            solvedProblemIds.add(num);
+            newlyFoundCount++;
+          }
+          continue;
+        }
+        const pid = slugToIdMap.get(clean);
+        if (pid && !solvedProblemIds.has(pid)) {
+          solvedProblemIds.add(pid);
+          newlyFoundCount++;
+        }
+      }
+    }
+
+    // METHOD 3: Full sync using LEETCODE_SESSION cookie (if provided)
     if (sessionCookie && sessionCookie.trim()) {
       try {
         const cookieClean = sessionCookie.trim().replace(/^LEETCODE_SESSION=/i, '');
@@ -101,12 +169,12 @@ export async function POST(req: Request) {
           }
         }
       } catch (cookieErr) {
-        console.warn('Failed to sync via session cookie, will attempt public GraphQL:', cookieErr);
+        console.warn('Failed to sync via session cookie:', cookieErr);
       }
     }
 
-    // METHOD 2: Public GraphQL recent AC sync (if no cookie or cookie didn't yield all)
-    if (syncMode !== 'full_session' && targetUsername) {
+    // METHOD 4: Public GraphQL recent AC sync (if no cookie or in addition to handle)
+    if (syncMode === 'recent_public' && targetUsername) {
       try {
         const gqlRes = await fetch('https://leetcode.com/graphql', {
           method: 'POST',
@@ -149,7 +217,7 @@ export async function POST(req: Request) {
 
     const updatedSolvedList = Array.from(solvedProblemIds);
 
-    // Save to user's database record if logged in
+    // Save to user's database record if user identified
     if (userId) {
       updateUserProgress(userId, { solved: updatedSolvedList });
     }
