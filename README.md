@@ -100,3 +100,4 @@ The static export will be generated in the `out/` folder, ready for drag-and-dro
    ```
 5. Pin **LC Levels** to your extension bar to filter contest questions directly from your browser!
 
+# lclevels
