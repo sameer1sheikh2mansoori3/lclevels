@@ -13,6 +13,7 @@ import { RandomProblemModal } from '../components/RandomProblemModal';
 import { ExtensionModal } from '../components/ExtensionModal';
 import { AuthModal } from '../components/AuthModal';
 import { NotesModal } from '../components/NotesModal';
+import { SyncModal } from '../components/SyncModal';
 import { LevelPreset } from '../utils/difficulty';
 
 const ALL_PROBLEMS = problemsData as Problem[];
@@ -42,6 +43,7 @@ export default function Home() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Other modals
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [randomModalOpen, setRandomModalOpen] = useState(false);
   const [randomProblem, setRandomProblem] = useState<Problem | null>(null);
   const [extensionModalOpen, setExtensionModalOpen] = useState(false);
@@ -176,6 +178,16 @@ export default function Home() {
     if (loggedUser.notes) setNotes(loggedUser.notes);
   };
 
+  const handleSyncSuccess = (updatedSolvedIds: number[], newlyFound: number, mode: string) => {
+    setSolvedIds(new Set(updatedSolvedIds));
+    try {
+      localStorage.setItem('lc_levels_solved', JSON.stringify(updatedSolvedIds));
+    } catch (e) {}
+    if (user) {
+      setUser({ ...user, solved: updatedSolvedIds });
+    }
+  };
+
   const handleLogout = () => {
     setUser(null);
     setToken(null);
@@ -290,6 +302,7 @@ export default function Home() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenAuth={() => setAuthModalOpen(true)}
+        onOpenSync={() => setSyncModalOpen(true)}
         onLogout={handleLogout}
         onRandomClick={pickRandomProblem}
         onExtensionClick={() => setExtensionModalOpen(true)}
@@ -397,6 +410,15 @@ export default function Home() {
         initialNote={activeNoteProblem ? notes[activeNoteProblem.id] || '' : ''}
         onClose={() => setNotesModalOpen(false)}
         onSave={saveNote}
+      />
+
+      <SyncModal
+        isOpen={syncModalOpen}
+        onClose={() => setSyncModalOpen(false)}
+        defaultUsername={user?.leetcodeUsername || ''}
+        currentSolvedIds={Array.from(solvedIds)}
+        authToken={token}
+        onSyncSuccess={handleSyncSuccess}
       />
 
       <RandomProblemModal

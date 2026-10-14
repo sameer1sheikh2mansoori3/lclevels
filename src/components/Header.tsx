@@ -14,6 +14,7 @@ import {
   TableProperties,
   Calendar,
   Lock,
+  RefreshCw,
 } from 'lucide-react';
 import { UserSession, ViewMode } from '../types';
 
@@ -26,6 +27,7 @@ interface HeaderProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onOpenAuth: () => void;
+  onOpenSync: () => void;
   onLogout: () => void;
   onRandomClick: () => void;
   onExtensionClick: () => void;
@@ -41,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   viewMode,
   onViewModeChange,
   onOpenAuth,
+  onOpenSync,
   onLogout,
   onRandomClick,
   onExtensionClick,
@@ -128,6 +131,16 @@ export const Header: React.FC<HeaderProps> = ({
               {solvedPercent}%
             </span>
           </div>
+
+          {/* Sync LeetCode Solved Button */}
+          <button
+            onClick={onOpenSync}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/60 transition-all hover:border-emerald-500 shadow-sm"
+            title="Sync questions you already solved on LeetCode"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Sync LeetCode</span>
+          </button>
 
           {/* Random Problem Button */}
           <button
