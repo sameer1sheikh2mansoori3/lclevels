@@ -197,3 +197,4 @@ export function getProblemIndexBadge(index: string): { bg: string; text: string;
       return { bg: 'bg-purple-950/50', text: 'text-purple-400', border: 'border-purple-800/50' };
   }
 }
+

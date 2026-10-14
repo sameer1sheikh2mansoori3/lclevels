@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ExternalLink, Check, Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Award } from 'lucide-react';
-import { Problem } from '../types';
+import { Problem, FilterState } from '../types';
 import { getRatingColor, getProblemIndexBadge } from '../utils/difficulty';
 import confetti from 'canvas-confetti';
 
@@ -10,6 +10,9 @@ interface ProblemTableProps {
   problems: Problem[];
   solvedIds: Set<number>;
   starredIds: Set<number>;
+  sortBy?: FilterState['sortBy'];
+  sortOrder?: FilterState['sortOrder'];
+  onSortChange?: (sortBy: FilterState['sortBy'], sortOrder: FilterState['sortOrder']) => void;
   onToggleSolved: (id: number) => void;
   onToggleStarred: (id: number) => void;
 }
@@ -18,6 +21,9 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
   problems,
   solvedIds,
   starredIds,
+  sortBy,
+  sortOrder,
+  onSortChange,
   onToggleSolved,
   onToggleStarred,
 }) => {
@@ -67,13 +73,64 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
       <div className="overflow-x-auto rounded-2xl border border-slate-800/80 bg-slate-900/40 shadow-sm backdrop-blur-sm">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400 font-medium">
+            <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400 font-medium select-none">
               <th className="py-3 px-3.5 w-12 text-center">Status</th>
-              <th className="py-3 px-3 w-16">ID</th>
+              <th
+                onClick={() => {
+                  if (onSortChange) {
+                    onSortChange('recent', sortBy === 'recent' && sortOrder === 'desc' ? 'asc' : 'desc');
+                  }
+                }}
+                className={`py-3 px-3 w-16 cursor-pointer hover:text-white transition-colors ${
+                  sortBy === 'recent' || sortBy === 'id' ? 'text-sky-400 font-bold' : ''
+                }`}
+                title="Click to sort by Recentness"
+              >
+                <div className="flex items-center gap-1">
+                  <span>ID</span>
+                  {sortBy === 'recent' && (
+                    <span className="text-[10px]">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                  )}
+                </div>
+              </th>
               <th className="py-3 px-4 min-w-[240px]">Problem Title</th>
-              <th className="py-3 px-4 min-w-[180px]">Contest</th>
+              <th
+                onClick={() => {
+                  if (onSortChange) {
+                    onSortChange('contestNum', sortBy === 'contestNum' && sortOrder === 'desc' ? 'asc' : 'desc');
+                  }
+                }}
+                className={`py-3 px-4 min-w-[180px] cursor-pointer hover:text-white transition-colors ${
+                  sortBy === 'contestNum' ? 'text-teal-400 font-bold' : ''
+                }`}
+                title="Click to sort by Contest Number"
+              >
+                <div className="flex items-center gap-1">
+                  <span>Contest</span>
+                  {sortBy === 'contestNum' && (
+                    <span className="text-[10px]">{sortOrder === 'desc' ? '↓' : '↑'}</span>
+                  )}
+                </div>
+              </th>
               <th className="py-3 px-3 w-20 text-center">Pos</th>
-              <th className="py-3 px-3 w-28 text-right font-mono">Difficulty</th>
+              <th
+                onClick={() => {
+                  if (onSortChange) {
+                    onSortChange('rating', sortBy === 'rating' && sortOrder === 'asc' ? 'desc' : 'asc');
+                  }
+                }}
+                className={`py-3 px-3 w-28 text-right font-mono cursor-pointer hover:text-white transition-colors ${
+                  sortBy === 'rating' ? 'text-amber-400 font-bold' : ''
+                }`}
+                title="Click to sort by Difficulty (Rating)"
+              >
+                <div className="flex items-center justify-end gap-1">
+                  <span>Difficulty</span>
+                  {sortBy === 'rating' && (
+                    <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                  )}
+                </div>
+              </th>
               <th className="py-3 px-3 w-36 text-center">CF Level</th>
               <th className="py-3 px-3 w-12 text-center">Star</th>
             </tr>
@@ -255,3 +312,4 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
     </div>
   );
 };
+

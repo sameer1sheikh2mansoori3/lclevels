@@ -10,6 +10,7 @@ import {
   Trophy,
   Calendar,
   Sparkles,
+  Clock,
 } from 'lucide-react';
 import { FilterState, ProblemIndex, ContestType } from '../types';
 
@@ -233,6 +234,28 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
           {/* Sort Control */}
           <div className="flex items-center gap-1 bg-slate-950/70 border border-slate-800 rounded-lg p-0.5">
+            {/* Recentness Sort Button */}
+            <button
+              onClick={() =>
+                onChange({
+                  sortBy: 'recent',
+                  sortOrder: filter.sortBy === 'recent' && filter.sortOrder === 'desc' ? 'asc' : 'desc',
+                })
+              }
+              className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
+                filter.sortBy === 'recent'
+                  ? 'bg-slate-800 text-sky-400 font-semibold shadow-sm ring-1 ring-sky-500/30'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Sort by Recentness (Most Recent Contests & Problems First)"
+            >
+              <Clock className="w-3 h-3" />
+              <span>
+                Recent {filter.sortBy === 'recent' ? (filter.sortOrder === 'desc' ? '↓ (Newest)' : '↑ (Oldest)') : ''}
+              </span>
+            </button>
+
+            {/* Difficulty Sort Button */}
             <button
               onClick={() =>
                 onChange({
@@ -242,10 +265,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               }
               className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
                 filter.sortBy === 'rating'
-                  ? 'bg-slate-800 text-amber-400 font-semibold'
+                  ? 'bg-slate-800 text-amber-400 font-semibold shadow-sm ring-1 ring-amber-500/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Sort by difficulty (default is Increasing Order)"
+              title="Sort by difficulty (Increasing order is default)"
             >
               <ArrowUpDown className="w-3 h-3" />
               <span>
@@ -253,6 +276,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </span>
             </button>
 
+            {/* Contest Sort Button */}
             <button
               onClick={() =>
                 onChange({
@@ -262,10 +286,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               }
               className={`px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 transition-all ${
                 filter.sortBy === 'contestNum'
-                  ? 'bg-slate-800 text-teal-400 font-semibold'
+                  ? 'bg-slate-800 text-teal-400 font-semibold shadow-sm ring-1 ring-teal-500/30'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
-              title="Sort by Contest Date"
+              title="Sort by Contest Number"
             >
               <Calendar className="w-3 h-3" />
               <span>
@@ -293,7 +317,20 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </span>
           <span className="text-slate-600">•</span>
           <span className="text-amber-400/90 font-mono text-[11px]">
-            Sorted: {filter.sortBy === 'rating' ? (filter.sortOrder === 'asc' ? 'Increasing Difficulty (Easiest → Hardest)' : 'Decreasing Difficulty (Hardest → Easiest)') : 'Contest Number'}
+            Sorted:{' '}
+            {filter.sortBy === 'recent'
+              ? filter.sortOrder === 'desc'
+                ? 'Most Recent (Newest Contests First 🕒)'
+                : 'Oldest Contests First (⏳)'
+              : filter.sortBy === 'rating'
+              ? filter.sortOrder === 'asc'
+                ? 'Increasing Difficulty (Easiest → Hardest 📈)'
+                : 'Decreasing Difficulty (Hardest → Easiest 📉)'
+              : filter.sortBy === 'contestNum'
+              ? filter.sortOrder === 'desc'
+                ? 'Contest # (Newest First)'
+                : 'Contest # (Oldest First)'
+              : 'Problem ID'}
           </span>
         </div>
       </div>

@@ -61,3 +61,4 @@ fs.writeFileSync(path.join(outDir, 'problems.json'), JSON.stringify(processed, n
 console.log(`Successfully generated ${processed.length} problems sorted by difficulty ascending.`);
 console.log(`Lowest rating: ${processed[0].title} (${processed[0].exactRating})`);
 console.log(`Highest rating: ${processed[processed.length - 1].title} (${processed[processed.length - 1].exactRating})`);
+

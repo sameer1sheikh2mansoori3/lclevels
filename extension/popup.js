@@ -5,6 +5,7 @@ let currentContest = 'all';
 let currentQ = 'ALL';
 let currentLevel = 'all';
 let searchQuery = '';
+let currentSort = 'diff_asc';
 
 const LEVEL_RANGES = {
   '1': [1000, 1299],
@@ -61,7 +62,7 @@ function saveSolved() {
 }
 
 function getFilteredProblems() {
-  return allProblems.filter((p) => {
+  const filtered = allProblems.filter((p) => {
     // Contest filter
     if (currentContest !== 'all' && p.contestType !== currentContest) return false;
 
@@ -84,6 +85,19 @@ function getFilteredProblems() {
 
     return true;
   });
+
+  // Sorting
+  if (currentSort === 'diff_asc') {
+    filtered.sort((a, b) => a.exactRating - b.exactRating);
+  } else if (currentSort === 'diff_desc') {
+    filtered.sort((a, b) => b.exactRating - a.exactRating);
+  } else if (currentSort === 'recent_desc') {
+    filtered.sort((a, b) => b.id - a.id);
+  } else if (currentSort === 'recent_asc') {
+    filtered.sort((a, b) => a.id - b.id);
+  }
+
+  return filtered;
 }
 
 function render() {
@@ -93,6 +107,15 @@ function render() {
   document.getElementById('totalCount').textContent = allProblems.length;
   document.getElementById('solvedCount').textContent = solvedIds.size;
   document.getElementById('resultCount').textContent = `${filtered.length} problems`;
+
+  const sortInfoLabels = {
+    diff_asc: 'Sorted: Difficulty ↑ (Ascending)',
+    diff_desc: 'Sorted: Difficulty ↓ (Descending)',
+    recent_desc: 'Sorted: Most Recent (Newest First 🕒)',
+    recent_asc: 'Sorted: Oldest First (⏳)',
+  };
+  const sortInfoEl = document.querySelector('.sort-info');
+  if (sortInfoEl) sortInfoEl.textContent = sortInfoLabels[currentSort] || '';
 
   const listEl = document.getElementById('problemList');
   if (filtered.length === 0) {
@@ -184,6 +207,15 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   });
 
+  // Sort selector
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      currentSort = e.target.value;
+      render();
+    });
+  }
+
   // Random button
   document.getElementById('randomBtn').addEventListener('click', () => {
     const filtered = getFilteredProblems();
@@ -200,3 +232,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+

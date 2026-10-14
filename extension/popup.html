@@ -58,6 +58,16 @@
           <option value="6">Level 6: Candidate Master (2100 - 2399)</option>
           <option value="7">Level 7: Grandmaster (2400+)</option>
         </select>
+      </div>
+
+      <!-- Sort & Random Row -->
+      <div class="level-select-row">
+        <select id="sortSelect">
+          <option value="diff_asc">📈 Difficulty ↑ (Ascending)</option>
+          <option value="recent_desc">🕒 Recent (Newest First)</option>
+          <option value="diff_desc">📉 Difficulty ↓ (Descending)</option>
+          <option value="recent_asc">⏳ Oldest First</option>
+        </select>
         <button id="randomBtn" title="Pick Random Unsolved Problem">🎲 Random</button>
       </div>
     </div>
@@ -77,3 +87,4 @@
   <script src="popup.js"></script>
 </body>
 </html>
+

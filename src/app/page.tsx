@@ -131,6 +131,10 @@ export default function Home() {
       return true;
     }).sort((a, b) => {
       // Primary Sorting
+      if (filter.sortBy === 'recent') {
+        // Recentness: newest contest problems first (descending by problem ID)
+        return filter.sortOrder === 'asc' ? a.id - b.id : b.id - a.id;
+      }
       if (filter.sortBy === 'rating') {
         return filter.sortOrder === 'asc'
           ? a.exactRating - b.exactRating
@@ -214,6 +218,11 @@ export default function Home() {
           problems={filteredProblems}
           solvedIds={solvedIds}
           starredIds={starredIds}
+          sortBy={filter.sortBy}
+          sortOrder={filter.sortOrder}
+          onSortChange={(sortBy, sortOrder) =>
+            setFilter((prev) => ({ ...prev, sortBy, sortOrder }))
+          }
           onToggleSolved={toggleSolved}
           onToggleStarred={toggleStarred}
         />
@@ -254,3 +263,4 @@ export default function Home() {
     </div>
   );
 }
+

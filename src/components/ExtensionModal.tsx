@@ -87,3 +87,4 @@ export const ExtensionModal: React.FC<ExtensionModalProps> = ({ isOpen, onClose 
     </div>
   );
 };
+

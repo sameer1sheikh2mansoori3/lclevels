@@ -47,7 +47,7 @@ export interface FilterState {
   maxRating: number;
   searchQuery: string;
   sortOrder: 'asc' | 'desc'; // asc is increasing difficulty
-  sortBy: 'rating' | 'id' | 'contestNum';
+  sortBy: 'rating' | 'recent' | 'id' | 'contestNum';
   statusFilter: 'all' | 'solved' | 'unsolved' | 'starred';
   levelPreset: string | null;
 }
@@ -57,3 +57,4 @@ export interface UserProgress {
   starred: number[];
   notes: Record<number, string>;
 }
+
