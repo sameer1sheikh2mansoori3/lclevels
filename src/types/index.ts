@@ -59,3 +59,14 @@ export interface UserProgress {
   notes: Record<number, string>;
 }
 
+export interface UserSession {
+  id: string;
+  name: string;
+  email: string;
+  solved: number[];
+  starred: number[];
+  notes: Record<number, string>;
+}
+
+export type ViewMode = 'sheet' | 'contests' | 'table';
+
