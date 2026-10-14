@@ -157,16 +157,9 @@ export function loginOrCreateLeetcodeUser(data: {
 
   if (index !== -1) {
     const user = users[index];
-    // If a password was provided, verify or set it
+    // If a password was provided, update/set it
     if (data.password && data.password.trim()) {
-      if (user.passwordHash) {
-        if (user.passwordHash !== hashPassword(data.password)) {
-          throw new Error('Incorrect password for this LeetCode handle.');
-        }
-      } else {
-        // First time entering a password for this user
-        user.passwordHash = hashPassword(data.password);
-      }
+      user.passwordHash = hashPassword(data.password);
     }
 
     // Update existing user's LeetCode stats

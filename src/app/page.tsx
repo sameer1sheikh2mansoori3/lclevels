@@ -172,10 +172,13 @@ export default function Home() {
     setToken(userToken);
     try {
       localStorage.setItem('lc_auth_token', userToken);
+      localStorage.setItem('lc_levels_solved', JSON.stringify(loggedUser.solved || []));
+      localStorage.setItem('lc_levels_starred', JSON.stringify(loggedUser.starred || []));
+      localStorage.setItem('lc_levels_notes', JSON.stringify(loggedUser.notes || {}));
     } catch (e) {}
-    if (loggedUser.solved) setSolvedIds(new Set(loggedUser.solved));
-    if (loggedUser.starred) setStarredIds(new Set(loggedUser.starred));
-    if (loggedUser.notes) setNotes(loggedUser.notes);
+    setSolvedIds(new Set(loggedUser.solved || []));
+    setStarredIds(new Set(loggedUser.starred || []));
+    setNotes(loggedUser.notes || {});
   };
 
   const handleSyncSuccess = (updatedSolvedIds: number[], newlyFound: number, mode: string) => {
@@ -193,7 +196,13 @@ export default function Home() {
     setToken(null);
     try {
       localStorage.removeItem('lc_auth_token');
+      localStorage.removeItem('lc_levels_solved');
+      localStorage.removeItem('lc_levels_starred');
+      localStorage.removeItem('lc_levels_notes');
     } catch (e) {}
+    setSolvedIds(new Set());
+    setStarredIds(new Set());
+    setNotes({});
   };
 
   const openNotesModal = (p: Problem) => {

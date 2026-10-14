@@ -25,5 +25,40 @@
     "leetcodeAvatar": "https://assets.leetcode.com/users/sameer234/avatar_1710138666.png",
     "leetcodeRating": 1557,
     "leetcodeRanking": 57576
+  },
+  {
+    "id": "lc_sameerking",
+    "name": "sameerKing",
+    "email": "sameerking@leetcode.user",
+    "passwordHash": "537d7fae74b543a6c15c106fbf6dc89272266aa616bab8cc0c1ab270a5ec3a58",
+    "createdAt": "2026-10-14T15:28:11.953Z",
+    "solved": [
+      3897,
+      3813,
+      3804,
+      3803,
+      3795,
+      3794,
+      3779,
+      3780,
+      3771,
+      3770,
+      3769,
+      3767,
+      3766,
+      3765,
+      3761,
+      3759,
+      3760,
+      3754,
+      3751,
+      3750
+    ],
+    "starred": [],
+    "notes": {},
+    "leetcodeUsername": "sameerKing",
+    "leetcodeRating": 1557,
+    "leetcodeAvatar": "https://assets.leetcode.com/users/default_avatar.jpg",
+    "leetcodeRanking": 4361127
   }
 ]

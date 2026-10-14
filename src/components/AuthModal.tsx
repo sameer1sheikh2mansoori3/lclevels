@@ -28,6 +28,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -35,6 +36,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const handleLeetcodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMsg(null);
     setLoading(true);
 
     try {
@@ -55,8 +57,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         throw new Error(data.error || 'LeetCode login failed');
       }
 
-      onSuccess(data.user, data.token);
-      onClose();
+      const count = data.autoSyncedCount !== undefined ? data.autoSyncedCount : (data.user.solved?.length || 0);
+      setSuccessMsg(`🎉 Logged in as @${data.user.leetcodeUsername || data.user.name}! ${count} contest questions synced.`);
+      setTimeout(() => {
+        onSuccess(data.user, data.token);
+        onClose();
+      }, 700);
     } catch (err: any) {
       setError(err.message || 'Failed to connect LeetCode profile');
     } finally {
@@ -100,8 +106,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         throw new Error(data.error || 'Authentication failed');
       }
 
-      onSuccess(data.user, data.token);
-      onClose();
+      setSuccessMsg(`🎉 Welcome, ${data.user.name || data.user.leetcodeUsername}!`);
+      setTimeout(() => {
+        onSuccess(data.user, data.token);
+        onClose();
+      }, 700);
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
     } finally {
@@ -209,6 +218,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
+        {/* Success Alert */}
+        {successMsg && (
+          <div className="mb-4 p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-800/60 flex items-center gap-2 text-xs text-emerald-300">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
         {/* TAB 1: LEETCODE USERNAME & PASSWORD LOGIN */}
         {tab === 'leetcode' && (
           <form onSubmit={handleLeetcodeSubmit} className="space-y-3.5">
@@ -295,18 +312,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1">
-                Email Address
+                {tab === 'login' ? 'Username or Email' : 'Email Address'}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
-                  type="email"
+                  type={tab === 'login' ? 'text' : 'email'}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
+                  placeholder={tab === 'login' ? 'e.g. sameerKing, sameer234 or email' : 'name@example.com'}
                   className="w-full pl-9 pr-3.5 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500"
                 />
               </div>
