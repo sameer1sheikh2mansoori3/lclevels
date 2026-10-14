@@ -186,6 +186,11 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                       }`}
                     >
                       <span className="truncate max-w-[320px]">{p.title}</span>
+                      {p.isPendingRating && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+                          NEW
+                        </span>
+                      )}
                       <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-orange-400 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </a>
                   </td>
@@ -220,8 +225,9 @@ export const ProblemTable: React.FC<ProblemTableProps> = ({
                   <td className="py-2.5 px-3 text-right">
                     <span
                       className={`inline-block font-mono font-bold text-xs px-2 py-0.5 rounded ${ratingStyle.badge}`}
+                      title={p.isPendingRating ? 'Estimated rating (recent contest)' : 'Official contest rating'}
                     >
-                      {p.exactRating.toFixed(1)}
+                      {p.isPendingRating ? `~${Math.round(p.exactRating)}` : p.exactRating.toFixed(1)}
                     </span>
                   </td>
 

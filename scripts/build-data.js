@@ -22,6 +22,8 @@ function getDifficultyCategory(rating) {
   return 'Very Hard';
 }
 
+const existingIds = new Set();
+
 const processed = raw.map(item => {
   const isBiweekly = item.ContestSlug.toLowerCase().startsWith('biweekly');
   const contestType = isBiweekly ? 'biweekly' : 'weekly';
@@ -29,6 +31,8 @@ const processed = raw.map(item => {
   const contestNum = match ? parseInt(match[0], 10) : 0;
   const exactRating = Number(item.Rating.toFixed(1));
   const roundedRating = Math.round(item.Rating);
+
+  existingIds.add(item.ID);
 
   return {
     id: item.ID,
@@ -45,8 +49,27 @@ const processed = raw.map(item => {
     contestUrl: `https://leetcode.com/contest/${item.ContestSlug}/`,
     cfTier: getCFTier(item.Rating),
     difficultyCategory: getDifficultyCategory(item.Rating),
+    isPendingRating: false,
   };
 });
+
+// Check if pendingContests exists (e.g. newly concluded contests whose ratings are still computing)
+const pendingFile = path.join(__dirname, '../src/data/pendingContests.json');
+if (fs.existsSync(pendingFile)) {
+  const pending = JSON.parse(fs.readFileSync(pendingFile, 'utf8'));
+  for (const item of pending) {
+    if (!existingIds.has(item.id)) {
+      processed.push({
+        ...item,
+        rating: Math.round(item.exactRating),
+        cfTier: getCFTier(item.exactRating),
+        difficultyCategory: getDifficultyCategory(item.exactRating),
+        isPendingRating: true,
+      });
+      existingIds.add(item.id);
+    }
+  }
+}
 
 // Sort by default in INCREASING ORDER of difficulty (rating)
 processed.sort((a, b) => a.exactRating - b.exactRating);
@@ -58,7 +81,14 @@ if (!fs.existsSync(outDir)) {
 
 fs.writeFileSync(path.join(outDir, 'problems.json'), JSON.stringify(processed, null, 2));
 
+// Also sync to extension
+const extDir = path.join(__dirname, '../extension/data');
+if (!fs.existsSync(extDir)) {
+  fs.mkdirSync(extDir, { recursive: true });
+}
+fs.writeFileSync(path.join(extDir, 'problems.json'), JSON.stringify(processed, null, 2));
+
 console.log(`Successfully generated ${processed.length} problems sorted by difficulty ascending.`);
+console.log(`Latest Weekly Contest: Weekly ${Math.max(...processed.filter(p => p.contestType === 'weekly').map(p => p.contestNum))}`);
 console.log(`Lowest rating: ${processed[0].title} (${processed[0].exactRating})`);
 console.log(`Highest rating: ${processed[processed.length - 1].title} (${processed[processed.length - 1].exactRating})`);
-

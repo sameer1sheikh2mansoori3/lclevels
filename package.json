@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "build:export": "EXPORT=true next build",
+    "sync": "node scripts/sync-data.js",
     "start": "next start",
     "lint": "next lint"
   },

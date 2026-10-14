@@ -28,6 +28,7 @@ export interface Problem {
   contestUrl: string;
   cfTier: CFTier;
   difficultyCategory: 'Easy' | 'Medium' | 'Medium-Hard' | 'Hard' | 'Very Hard';
+  isPendingRating?: boolean;
 }
 
 export type CFTier =
