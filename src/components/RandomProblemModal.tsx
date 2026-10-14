@@ -1,20 +1,22 @@
 'use client';
 
 import React from 'react';
-import { X, ExternalLink, Dices, Check, Trophy } from 'lucide-react';
-import { Problem } from '../types';
-import { getRatingColor, getProblemIndexBadge } from '../utils/difficulty';
+import { X, ExternalLink, Dices, Check } from 'lucide-react';
+import { Problem, AtCoderProblem, Platform } from '../types';
+import { getRatingColor, getProblemIndexBadge, getAtCoderRatingColor, getAtCoderTaskBadge } from '../utils/difficulty';
 
 interface RandomProblemModalProps {
-  problem: Problem | null;
+  platform: Platform;
+  problem: Problem | AtCoderProblem | null;
   isOpen: boolean;
   onClose: () => void;
   onPickAnother: () => void;
   isSolved: boolean;
-  onToggleSolved: (id: number) => void;
+  onToggleSolved: () => void;
 }
 
 export const RandomProblemModal: React.FC<RandomProblemModalProps> = ({
+  platform,
   problem,
   isOpen,
   onClose,
@@ -24,8 +26,19 @@ export const RandomProblemModal: React.FC<RandomProblemModalProps> = ({
 }) => {
   if (!isOpen || !problem) return null;
 
-  const ratingStyle = getRatingColor(problem.exactRating);
-  const posBadge = getProblemIndexBadge(problem.problemIndex);
+  const isAtCoder = platform === 'atcoder';
+
+  const badgeProps = isAtCoder
+    ? getAtCoderTaskBadge(problem.problemIndex)
+    : getProblemIndexBadge((problem as Problem).problemIndex);
+
+  const ratingStyle = isAtCoder
+    ? getAtCoderRatingColor(problem.exactRating)
+    : getRatingColor(problem.exactRating);
+
+  const tierName = isAtCoder
+    ? (problem as AtCoderProblem).levelName
+    : (problem as Problem).cfTier;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
@@ -44,8 +57,10 @@ export const RandomProblemModal: React.FC<RandomProblemModalProps> = ({
             <Dices className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-slate-200">Random Problem Challenge</h3>
-            <p className="text-xs text-slate-400">Selected from your current difficulty & filters</p>
+            <h3 className="text-sm font-semibold text-slate-200">
+              {isAtCoder ? 'AtCoder Random Challenge' : 'LeetCode Random Challenge'}
+            </h3>
+            <p className="text-xs text-slate-400">Selected from your difficulty ladder</p>
           </div>
         </div>
 
@@ -55,12 +70,12 @@ export const RandomProblemModal: React.FC<RandomProblemModalProps> = ({
             <span className="text-xs font-mono text-slate-500">#{problem.id}</span>
             <div className="flex items-center gap-2">
               <span
-                className={`text-xs px-2 py-0.5 rounded font-bold border ${posBadge.bg} ${posBadge.text} ${posBadge.border}`}
+                className={`text-xs px-2 py-0.5 rounded font-bold border ${badgeProps.bg} ${badgeProps.text} ${badgeProps.border}`}
               >
                 {problem.problemIndex}
               </span>
               <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded ${ratingStyle.badge}`}>
-                {problem.exactRating.toFixed(1)}
+                {problem.exactRating > 0 ? problem.exactRating.toFixed(0) : 'Unrated'}
               </span>
             </div>
           </div>
@@ -69,8 +84,8 @@ export const RandomProblemModal: React.FC<RandomProblemModalProps> = ({
 
           <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/80">
             <span>{problem.contestName}</span>
-            <span className="font-medium" style={{ color: ratingStyle.hex }}>
-              {problem.cfTier}
+            <span className="font-semibold" style={{ color: ratingStyle.hex }}>
+              {tierName}
             </span>
           </div>
         </div>
@@ -81,14 +96,14 @@ export const RandomProblemModal: React.FC<RandomProblemModalProps> = ({
             href={problem.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:flex-1 py-2.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all"
+            className="w-full sm:flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all"
           >
-            <span>Solve on LeetCode</span>
+            <span>Solve on {isAtCoder ? 'AtCoder' : 'LeetCode'}</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
 
           <button
-            onClick={() => onToggleSolved(problem.id)}
+            onClick={onToggleSolved}
             className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-colors ${
               isSolved
                 ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300'

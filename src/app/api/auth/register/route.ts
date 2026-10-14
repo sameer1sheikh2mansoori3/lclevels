@@ -4,7 +4,17 @@ import { createUser, findUserByEmail, generateToken, updateUserProgress } from '
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, password, initialSolved, initialStarred, initialNotes } = body;
+    const {
+      name,
+      email,
+      password,
+      initialSolved,
+      initialStarred,
+      initialNotes,
+      initialAtCoderSolved,
+      initialAtCoderStarred,
+      initialAtCoderNotes,
+    } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -31,19 +41,24 @@ export async function POST(req: Request) {
     const user = createUser(name, email, password);
 
     // Merge any initial progress from guest session
-    if (
-      (initialSolved && initialSolved.length > 0) ||
-      (initialStarred && initialStarred.length > 0) ||
-      (initialNotes && Object.keys(initialNotes).length > 0)
-    ) {
+    const hasInitialLC = (initialSolved && initialSolved.length > 0) || (initialStarred && initialStarred.length > 0) || (initialNotes && Object.keys(initialNotes).length > 0);
+    const hasInitialAC = (initialAtCoderSolved && initialAtCoderSolved.length > 0) || (initialAtCoderStarred && initialAtCoderStarred.length > 0) || (initialAtCoderNotes && Object.keys(initialAtCoderNotes).length > 0);
+
+    if (hasInitialLC || hasInitialAC) {
       updateUserProgress(user.id, {
         solved: initialSolved || [],
         starred: initialStarred || [],
         notes: initialNotes || {},
+        atcoderSolved: initialAtCoderSolved || [],
+        atcoderStarred: initialAtCoderStarred || [],
+        atcoderNotes: initialAtCoderNotes || {},
       });
       user.solved = initialSolved || [];
       user.starred = initialStarred || [];
       user.notes = initialNotes || {};
+      user.atcoderSolved = initialAtCoderSolved || [];
+      user.atcoderStarred = initialAtCoderStarred || [];
+      user.atcoderNotes = initialAtCoderNotes || {};
     }
 
     const token = generateToken(user);
@@ -57,6 +72,9 @@ export async function POST(req: Request) {
         solved: user.solved,
         starred: user.starred,
         notes: user.notes,
+        atcoderSolved: user.atcoderSolved || [],
+        atcoderStarred: user.atcoderStarred || [],
+        atcoderNotes: user.atcoderNotes || {},
       },
     });
   } catch (err: any) {

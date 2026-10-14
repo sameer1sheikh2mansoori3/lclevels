@@ -53,10 +53,32 @@ export interface FilterState {
   levelPreset: string | null;
 }
 
+export type Platform = 'leetcode' | 'atcoder';
+
+export type AtCoderContestType = 'all' | 'abc' | 'arc' | 'agc';
+
+export interface AtCoderProblem {
+  id: string; // e.g. "abc380_a"
+  contestId: string; // e.g. "abc380"
+  contestName: string;
+  contestType: 'abc' | 'arc' | 'agc' | 'other';
+  problemIndex: string; // "A" | "B" | "C" | "D" | "E" | "F" | "G" | "Ex"
+  title: string;
+  exactRating: number;
+  level: number; // 1 to 8
+  levelName: string; // Gray, Brown, Green, Cyan, Blue, Yellow, Orange, Red
+  levelColor: string;
+  startEpoch: number;
+  url: string;
+}
+
 export interface UserProgress {
   solved: number[];
   starred: number[];
   notes: Record<number, string>;
+  atcoderSolved?: string[];
+  atcoderStarred?: string[];
+  atcoderNotes?: Record<string, string>;
 }
 
 export interface UserSession {
@@ -66,6 +88,9 @@ export interface UserSession {
   solved: number[];
   starred: number[];
   notes: Record<number, string>;
+  atcoderSolved?: string[];
+  atcoderStarred?: string[];
+  atcoderNotes?: Record<string, string>;
   leetcodeUsername?: string;
   leetcodeRating?: number;
   leetcodeBadge?: string;
@@ -74,4 +99,5 @@ export interface UserSession {
 }
 
 export type ViewMode = 'sheet' | 'contests' | 'table';
+
 

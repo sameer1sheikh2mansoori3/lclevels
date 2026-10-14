@@ -11,6 +11,9 @@ export interface UserRecord {
   solved: number[];
   starred: number[];
   notes: Record<number, string>;
+  atcoderSolved?: string[];
+  atcoderStarred?: string[];
+  atcoderNotes?: Record<string, string>;
   leetcodeUsername?: string;
   leetcodeRating?: number;
   leetcodeBadge?: string;
@@ -93,6 +96,9 @@ export function createUser(name: string, email: string, password: string): UserR
     solved: [],
     starred: [],
     notes: {},
+    atcoderSolved: [],
+    atcoderStarred: [],
+    atcoderNotes: {},
   };
 
   users.push(newUser);
@@ -102,7 +108,14 @@ export function createUser(name: string, email: string, password: string): UserR
 
 export function updateUserProgress(
   id: string,
-  progress: { solved?: number[]; starred?: number[]; notes?: Record<number, string> }
+  progress: {
+    solved?: number[];
+    starred?: number[];
+    notes?: Record<number, string>;
+    atcoderSolved?: string[];
+    atcoderStarred?: string[];
+    atcoderNotes?: Record<string, string>;
+  }
 ): UserRecord {
   const users = getAllUsers();
   const index = users.findIndex((u) => u.id === id);
@@ -118,6 +131,15 @@ export function updateUserProgress(
   }
   if (progress.notes !== undefined) {
     users[index].notes = { ...users[index].notes, ...progress.notes };
+  }
+  if (progress.atcoderSolved !== undefined) {
+    users[index].atcoderSolved = Array.from(new Set(progress.atcoderSolved));
+  }
+  if (progress.atcoderStarred !== undefined) {
+    users[index].atcoderStarred = Array.from(new Set(progress.atcoderStarred));
+  }
+  if (progress.atcoderNotes !== undefined) {
+    users[index].atcoderNotes = { ...(users[index].atcoderNotes || {}), ...progress.atcoderNotes };
   }
 
   saveUsers(users);

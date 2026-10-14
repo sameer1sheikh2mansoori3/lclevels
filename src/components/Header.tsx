@@ -16,9 +16,11 @@ import {
   Lock,
   RefreshCw,
 } from 'lucide-react';
-import { UserSession, ViewMode } from '../types';
+import { UserSession, ViewMode, Platform } from '../types';
 
 interface HeaderProps {
+  platform: Platform;
+  onPlatformChange: (p: Platform) => void;
   totalCount: number;
   solvedCount: number;
   starredCount: number;
@@ -35,6 +37,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  platform,
+  onPlatformChange,
   totalCount,
   solvedCount,
   starredCount,
@@ -54,25 +58,59 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3.5">
-        {/* Brand & View Switcher */}
+        {/* Brand, Platform Switcher & View Switcher */}
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center shadow-lg shadow-orange-500/20 ring-1 ring-white/20">
-              <span className="font-mono font-black text-white text-xl tracking-tighter">LC</span>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ring-1 ring-white/20 ${
+              platform === 'leetcode'
+                ? 'bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 shadow-orange-500/20'
+                : 'bg-gradient-to-tr from-slate-700 via-slate-800 to-zinc-900 border border-slate-600 shadow-slate-700/20'
+            }`}>
+              <span className="font-mono font-black text-white text-xl tracking-tighter">
+                {platform === 'leetcode' ? 'LC' : 'AC'}
+              </span>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
-                  LC Levels
+                  {platform === 'leetcode' ? 'LC Levels' : 'AtCoder Levels'}
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     Sheet & Ladders
                   </span>
                 </h1>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                LeetCode Contest Sheet with Elo Ratings & Difficulty Ladders
+                {platform === 'leetcode'
+                  ? 'LeetCode Contest Sheet with Elo Ratings & Difficulty Ladders'
+                  : 'AtCoder ABC / ARC / AGC Contest Sheet with Kenkoooo Ratings'}
               </p>
             </div>
+          </div>
+
+          {/* Platform Switcher Toggle */}
+          <div className="flex items-center bg-slate-950/90 p-1 rounded-xl border border-slate-800 shadow-inner">
+            <button
+              onClick={() => onPlatformChange('leetcode')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                platform === 'leetcode'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span className="font-mono font-black text-[11px]">LC</span>
+              <span>LeetCode</span>
+            </button>
+            <button
+              onClick={() => onPlatformChange('atcoder')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                platform === 'atcoder'
+                  ? 'bg-gradient-to-r from-slate-700 to-slate-800 text-amber-400 border border-slate-600 shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span className="font-mono font-black text-[11px] text-amber-400">AC</span>
+              <span>AtCoder</span>
+            </button>
           </div>
 
           {/* View Mode Switcher Pills */}
@@ -132,14 +170,14 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
 
-          {/* Sync LeetCode Solved Button */}
+          {/* Sync Solved Button */}
           <button
             onClick={onOpenSync}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/60 transition-all hover:border-emerald-500 shadow-sm"
-            title="Sync questions you already solved on LeetCode"
+            title={`Sync questions you already solved on ${platform === 'leetcode' ? 'LeetCode' : 'AtCoder'}`}
           >
             <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Sync LeetCode</span>
+            <span>{platform === 'leetcode' ? 'Sync LeetCode' : 'Sync AtCoder'}</span>
           </button>
 
           {/* Random Problem Button */}

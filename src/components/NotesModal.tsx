@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, FileText, Save, Check } from 'lucide-react';
-import { Problem } from '../types';
 
 interface NotesModalProps {
-  problem: Problem | null;
+  problem: { id: string | number; title: string } | null;
   initialNote: string;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (problemId: number, note: string) => void;
+  onSave: (problemId: string | number, note: string) => void;
 }
 
 export const NotesModal: React.FC<NotesModalProps> = ({
@@ -56,40 +55,49 @@ export const NotesModal: React.FC<NotesModalProps> = ({
           <div>
             <h3 className="text-sm font-semibold text-slate-200">Problem Notes / Revision</h3>
             <p className="text-xs text-slate-400 truncate max-w-sm">
-              #{problem.id} • {problem.title}
+              {problem.id} • {problem.title}
             </p>
           </div>
         </div>
 
-        {/* Textarea */}
-        <div className="my-4">
+        {/* Text Area */}
+        <div className="mt-4">
           <textarea
-            rows={7}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Write your solution approach, time/space complexity, trick/edge-case or revision notes here..."
-            className="w-full p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 font-sans leading-relaxed resize-none"
+            placeholder="Write your intuition, key observations, time complexity, or tricky edge cases for revision..."
+            className="w-full h-44 p-3 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 resize-none font-mono"
+            autoFocus
           />
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between">
+        {/* Footer Actions */}
+        <div className="mt-4 flex items-center justify-between">
           <span className="text-[11px] text-slate-500">
-            {note.trim().length > 0 ? `${note.trim().length} chars` : 'No notes yet'}
+            {note.length} characters • Auto-saved to your account
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 rounded-lg border border-slate-800 text-slate-400 hover:text-white text-xs font-medium"
+              className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition-all active:scale-95"
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition-all active:scale-95"
             >
-              {saved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-              <span>{saved ? 'Saved!' : 'Save Note'}</span>
+              {saved ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Saved!</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Notes</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -97,4 +105,3 @@ export const NotesModal: React.FC<NotesModalProps> = ({
     </div>
   );
 };
-

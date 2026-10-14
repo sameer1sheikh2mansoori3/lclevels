@@ -11,6 +11,9 @@ interface AuthModalProps {
   currentGuestSolved: number[];
   currentGuestStarred: number[];
   currentGuestNotes: Record<number, string>;
+  currentGuestAtCoderSolved?: string[];
+  currentGuestAtCoderStarred?: string[];
+  currentGuestAtCoderNotes?: Record<string, string>;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -20,8 +23,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   currentGuestSolved,
   currentGuestStarred,
   currentGuestNotes,
+  currentGuestAtCoderSolved = [],
+  currentGuestAtCoderStarred = [],
+  currentGuestAtCoderNotes = {},
 }) => {
-  const [tab, setTab] = useState<'leetcode' | 'login' | 'signup'>('leetcode');
+  const [tab, setTab] = useState<'leetcode' | 'login' | 'signup'>('login');
   const [lcUsername, setLcUsername] = useState('');
   const [lcPassword, setLcPassword] = useState('');
   const [name, setName] = useState('');
@@ -85,6 +91,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               mergeSolved: currentGuestSolved,
               mergeStarred: currentGuestStarred,
               mergeNotes: currentGuestNotes,
+              mergeAtCoderSolved: currentGuestAtCoderSolved,
+              mergeAtCoderStarred: currentGuestAtCoderStarred,
+              mergeAtCoderNotes: currentGuestAtCoderNotes,
             }
           : {
               name,
@@ -93,6 +102,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               initialSolved: currentGuestSolved,
               initialStarred: currentGuestStarred,
               initialNotes: currentGuestNotes,
+              initialAtCoderSolved: currentGuestAtCoderSolved,
+              initialAtCoderStarred: currentGuestAtCoderStarred,
+              initialAtCoderNotes: currentGuestAtCoderNotes,
             };
 
       const res = await fetch(endpoint, {
@@ -135,24 +147,54 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Brand Header */}
         <div className="text-center mb-5">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center mx-auto shadow-lg shadow-orange-500/20 mb-3 ring-1 ring-white/20">
-            <span className="font-mono font-black text-white text-lg tracking-tight">LC</span>
+            <span className="font-mono font-black text-white text-lg tracking-tight">CF</span>
           </div>
           <h3 className="text-lg font-bold text-white tracking-tight">
-            {tab === 'leetcode'
-              ? 'Connect with LeetCode'
-              : tab === 'login'
-              ? 'Welcome Back!'
-              : 'Create LC Levels Account'}
+            {tab === 'login'
+              ? 'Login to Your Account'
+              : tab === 'signup'
+              ? 'Create Free Account'
+              : 'Connect with LeetCode'}
           </h3>
           <p className="text-xs text-slate-400 mt-1">
             {tab === 'leetcode'
               ? 'Sync your real LeetCode profile, contest rating & solved problems'
-              : 'Save notes and sync solved questions across devices'}
+              : 'Track your LeetCode & AtCoder ladders, progress and revision notes across devices'}
           </p>
         </div>
 
         {/* Tab Switcher */}
         <div className="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800 mb-4 gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setTab('login');
+              setError(null);
+            }}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+              tab === 'login'
+                ? 'bg-orange-500 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Login</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTab('signup');
+              setError(null);
+            }}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+              tab === 'signup'
+                ? 'bg-orange-500 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Register</span>
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -167,36 +209,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>LeetCode</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTab('login');
-              setError(null);
-            }}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-              tab === 'login'
-                ? 'bg-slate-800 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <LogIn className="w-3.5 h-3.5" />
-            <span>Email</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTab('signup');
-              setError(null);
-            }}
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-              tab === 'signup'
-                ? 'bg-slate-800 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span>Register</span>
           </button>
         </div>
 

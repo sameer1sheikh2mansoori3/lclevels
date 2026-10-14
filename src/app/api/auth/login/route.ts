@@ -4,7 +4,16 @@ import { findUserByIdentifier, hashPassword, generateToken, updateUserProgress }
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, mergeSolved, mergeStarred, mergeNotes } = body;
+    const {
+      email,
+      password,
+      mergeSolved,
+      mergeStarred,
+      mergeNotes,
+      mergeAtCoderSolved,
+      mergeAtCoderStarred,
+      mergeAtCoderNotes,
+    } = body;
 
     const identifier = (email || '').trim();
     if (!identifier || !password) {
@@ -33,18 +42,31 @@ export async function POST(req: Request) {
     }
 
     // Optional merge guest progress into existing account
-    if (mergeSolved || mergeStarred || mergeNotes) {
+    const hasLCMerge = mergeSolved || mergeStarred || mergeNotes;
+    const hasACMerge = mergeAtCoderSolved || mergeAtCoderStarred || mergeAtCoderNotes;
+
+    if (hasLCMerge || hasACMerge) {
       const mergedSolved = Array.from(new Set([...(user.solved || []), ...(mergeSolved || [])]));
       const mergedStarred = Array.from(new Set([...(user.starred || []), ...(mergeStarred || [])]));
       const mergedNotes = { ...(user.notes || {}), ...(mergeNotes || {}) };
+      const mergedACSolved = Array.from(new Set([...(user.atcoderSolved || []), ...(mergeAtCoderSolved || [])]));
+      const mergedACStarred = Array.from(new Set([...(user.atcoderStarred || []), ...(mergeAtCoderStarred || [])]));
+      const mergedACNotes = { ...(user.atcoderNotes || {}), ...(mergeAtCoderNotes || {}) };
+
       updateUserProgress(user.id, {
         solved: mergedSolved,
         starred: mergedStarred,
         notes: mergedNotes,
+        atcoderSolved: mergedACSolved,
+        atcoderStarred: mergedACStarred,
+        atcoderNotes: mergedACNotes,
       });
       user.solved = mergedSolved;
       user.starred = mergedStarred;
       user.notes = mergedNotes;
+      user.atcoderSolved = mergedACSolved;
+      user.atcoderStarred = mergedACStarred;
+      user.atcoderNotes = mergedACNotes;
     }
 
     const token = generateToken(user);
@@ -58,6 +80,12 @@ export async function POST(req: Request) {
         solved: user.solved,
         starred: user.starred,
         notes: user.notes,
+        atcoderSolved: user.atcoderSolved || [],
+        atcoderStarred: user.atcoderStarred || [],
+        atcoderNotes: user.atcoderNotes || {},
+        leetcodeUsername: user.leetcodeUsername,
+        leetcodeRating: user.leetcodeRating,
+        leetcodeAvatar: user.leetcodeAvatar,
       },
     });
   } catch (err: any) {

@@ -60,5 +60,25 @@
     "leetcodeRating": 1557,
     "leetcodeAvatar": "https://assets.leetcode.com/users/default_avatar.jpg",
     "leetcodeRanking": 4361127
+  },
+  {
+    "id": "user_1791993701019_z189s",
+    "name": "Sameer Test",
+    "email": "sameer_test_ac@example.com",
+    "passwordHash": "a42b3997e85b8a483616b66e7fc25fe652235c2ccede822fcf94710ea167bd1f",
+    "createdAt": "2026-10-14T16:01:41.020Z",
+    "solved": [],
+    "starred": [],
+    "notes": {},
+    "atcoderSolved": [
+      "abc380_a",
+      "abc380_b"
+    ],
+    "atcoderStarred": [
+      "abc380_c"
+    ],
+    "atcoderNotes": {
+      "abc380_a": "Used two pointers trick"
+    }
   }
 ]
