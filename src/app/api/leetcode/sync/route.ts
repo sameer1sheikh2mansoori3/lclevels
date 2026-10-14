@@ -48,10 +48,10 @@ export async function POST(req: Request) {
     const { username, sessionCookie, currentSolved = [], solvedIds, rawText } = body;
 
     let targetUsername = (username || '').trim();
-    let userRecord = userId ? findUserById(userId) : null;
+    let userRecord = userId ? await findUserById(userId) : null;
 
     if (!userRecord && targetUsername) {
-      userRecord = findUserByLeetcodeUsername(targetUsername);
+      userRecord = await findUserByLeetcodeUsername(targetUsername);
       if (userRecord) userId = userRecord.id;
     }
 
@@ -219,7 +219,7 @@ export async function POST(req: Request) {
 
     // Save to user's database record if user identified
     if (userId) {
-      updateUserProgress(userId, { solved: updatedSolvedList });
+      await updateUserProgress(userId, { solved: updatedSolvedList });
     }
 
     return NextResponse.json({

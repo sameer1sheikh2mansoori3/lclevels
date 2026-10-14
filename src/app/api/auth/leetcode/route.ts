@@ -110,7 +110,7 @@ export async function POST(req: Request) {
 
     const combinedSolved = Array.from(new Set([...(mergeSolved || []), ...matchedRecentIds]));
 
-    const user = loginOrCreateLeetcodeUser({
+    const user = await loginOrCreateLeetcodeUser({
       username: trimmedUsername,
       password: password ? String(password).trim() : undefined,
       realName,

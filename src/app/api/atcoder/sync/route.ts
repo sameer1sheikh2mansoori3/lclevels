@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 
     // Save to user if logged in
     if (userId) {
-      updateUserProgress(userId, { atcoderSolved: updatedSolvedList });
+      await updateUserProgress(userId, { atcoderSolved: updatedSolvedList });
     }
 
     return NextResponse.json({

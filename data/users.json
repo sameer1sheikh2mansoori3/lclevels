@@ -80,5 +80,18 @@
     "atcoderNotes": {
       "abc380_a": "Used two pointers trick"
     }
+  },
+  {
+    "id": "user_1791994624246_vc8gg",
+    "name": "Mongo User",
+    "email": "mongouser@example.com",
+    "passwordHash": "90cadeb409538043ceab088f26d49763e01724b04c1915d244b2957c61c9d40f",
+    "createdAt": "2026-10-14T16:17:04.247Z",
+    "solved": [],
+    "starred": [],
+    "notes": {},
+    "atcoderSolved": [],
+    "atcoderStarred": [],
+    "atcoderNotes": {}
   }
 ]

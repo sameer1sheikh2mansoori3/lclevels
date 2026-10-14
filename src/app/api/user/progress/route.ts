@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { solved, starred, notes, atcoderSolved, atcoderStarred, atcoderNotes } = body;
 
-    const updatedUser = updateUserProgress(payload.id, {
+    const updatedUser = await updateUserProgress(payload.id, {
       solved,
       starred,
       notes,

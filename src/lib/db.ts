@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
+import { connectMongo, UserModel, mongoDocToUserRecord } from './mongodb';
 
 export interface UserRecord {
   id: string;
@@ -21,6 +23,7 @@ export interface UserRecord {
   leetcodeRanking?: number;
 }
 
+// Local JSON File Database Fallback
 const DATA_DIR = path.join(process.cwd(), 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
@@ -33,7 +36,7 @@ function ensureDataFile() {
   }
 }
 
-export function getAllUsers(): UserRecord[] {
+export function getAllLocalUsers(): UserRecord[] {
   ensureDataFile();
   try {
     const content = fs.readFileSync(USERS_FILE, 'utf8');
@@ -43,7 +46,11 @@ export function getAllUsers(): UserRecord[] {
   }
 }
 
-function saveUsers(users: UserRecord[]) {
+export function getAllUsers(): UserRecord[] {
+  return getAllLocalUsers();
+}
+
+function saveLocalUsers(users: UserRecord[]) {
   ensureDataFile();
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
@@ -70,29 +77,104 @@ export function verifyToken(token: string): { id: string; email: string } | null
   }
 }
 
-export function findUserByEmail(email: string): UserRecord | undefined {
-  const users = getAllUsers();
-  return users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+export async function findUserByEmail(email: string): Promise<UserRecord | undefined> {
+  const cleanEmail = email.trim().toLowerCase();
+  const mongo = await connectMongo();
+  if (mongo) {
+    try {
+      const doc = await UserModel.findOne({ email: cleanEmail });
+      if (doc) return mongoDocToUserRecord(doc);
+    } catch (e) {
+      console.warn('Mongo findUserByEmail error, checking local store:', e);
+    }
+  }
+
+  const users = getAllLocalUsers();
+  return users.find((u) => u.email.toLowerCase() === cleanEmail);
 }
 
-export function findUserById(id: string): UserRecord | undefined {
-  const users = getAllUsers();
+export async function findUserById(id: string): Promise<UserRecord | undefined> {
+  const mongo = await connectMongo();
+  if (mongo) {
+    try {
+      const query = mongoose.isValidObjectId(id)
+        ? { $or: [{ userId: id }, { _id: id }] }
+        : { userId: id };
+      const doc = await UserModel.findOne(query);
+      if (doc) return mongoDocToUserRecord(doc);
+    } catch (e) {
+      console.warn('Mongo findUserById error, checking local store:', e);
+    }
+  }
+
+  const users = getAllLocalUsers();
   return users.find((u) => u.id === id);
 }
 
-export function createUser(name: string, email: string, password: string): UserRecord {
-  const users = getAllUsers();
-  const existing = findUserByEmail(email);
+export async function findUserByIdentifier(identifier: string): Promise<UserRecord | undefined> {
+  const clean = identifier.trim().toLowerCase();
+  const mongo = await connectMongo();
+  if (mongo) {
+    try {
+      const doc = await UserModel.findOne({
+        $or: [
+          { email: clean },
+          { leetcodeUsername: { $regex: new RegExp(`^${clean}$`, 'i') } },
+          { name: { $regex: new RegExp(`^${clean}$`, 'i') } },
+          { userId: clean },
+        ],
+      });
+      if (doc) return mongoDocToUserRecord(doc);
+    } catch (e) {
+      console.warn('Mongo findUserByIdentifier error, checking local store:', e);
+    }
+  }
+
+  const users = getAllLocalUsers();
+  return users.find(
+    (u) =>
+      u.email.toLowerCase() === clean ||
+      u.leetcodeUsername?.toLowerCase() === clean ||
+      u.name.toLowerCase() === clean ||
+      u.id === clean
+  );
+}
+
+export async function findUserByLeetcodeUsername(username: string): Promise<UserRecord | undefined> {
+  const clean = username.trim().toLowerCase();
+  const mongo = await connectMongo();
+  if (mongo) {
+    try {
+      const doc = await UserModel.findOne({
+        leetcodeUsername: { $regex: new RegExp(`^${clean}$`, 'i') },
+      });
+      if (doc) return mongoDocToUserRecord(doc);
+    } catch (e) {
+      console.warn('Mongo findUserByLeetcodeUsername error:', e);
+    }
+  }
+
+  const users = getAllLocalUsers();
+  return users.find((u) => u.leetcodeUsername?.toLowerCase() === clean);
+}
+
+export async function createUser(name: string, email: string, password: string): Promise<UserRecord> {
+  const cleanEmail = email.trim().toLowerCase();
+  const existing = await findUserByEmail(cleanEmail);
   if (existing) {
     throw new Error('User already exists with this email');
   }
 
-  const newUser: UserRecord = {
-    id: 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+  const newId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  const passwordHash = hashPassword(password);
+  const now = new Date().toISOString();
+
+  const userObj: UserRecord = {
+    id: newId,
     name: name.trim(),
-    email: email.trim().toLowerCase(),
-    passwordHash: hashPassword(password),
-    createdAt: new Date().toISOString(),
+    email: cleanEmail,
+    passwordHash,
+    createdAt: now,
     solved: [],
     starred: [],
     notes: {},
@@ -101,12 +183,34 @@ export function createUser(name: string, email: string, password: string): UserR
     atcoderNotes: {},
   };
 
-  users.push(newUser);
-  saveUsers(users);
-  return newUser;
+  const mongo = await connectMongo();
+  if (mongo) {
+    try {
+      const doc = await UserModel.create({
+        userId: newId,
+        name: name.trim(),
+        email: cleanEmail,
+        passwordHash,
+        solved: [],
+        starred: [],
+        notes: {},
+        atcoderSolved: [],
+        atcoderStarred: [],
+        atcoderNotes: {},
+      });
+      return mongoDocToUserRecord(doc);
+    } catch (e) {
+      console.warn('Mongo createUser error, falling back to local save:', e);
+    }
+  }
+
+  const users = getAllLocalUsers();
+  users.push(userObj);
+  saveLocalUsers(users);
+  return userObj;
 }
 
-export function updateUserProgress(
+export async function updateUserProgress(
   id: string,
   progress: {
     solved?: number[];
@@ -116,8 +220,46 @@ export function updateUserProgress(
     atcoderStarred?: string[];
     atcoderNotes?: Record<string, string>;
   }
-): UserRecord {
-  const users = getAllUsers();
+): Promise<UserRecord> {
+  const mongo = await connectMongo();
+  if (mongo) {
+    try {
+      const query = mongoose.isValidObjectId(id)
+        ? { $or: [{ userId: id }, { _id: id }] }
+        : { userId: id };
+
+      const existingDoc = await UserModel.findOne(query);
+      if (existingDoc) {
+        if (progress.solved !== undefined) {
+          existingDoc.solved = Array.from(new Set(progress.solved));
+        }
+        if (progress.starred !== undefined) {
+          existingDoc.starred = Array.from(new Set(progress.starred));
+        }
+        if (progress.notes !== undefined) {
+          existingDoc.notes = { ...(existingDoc.notes || {}), ...progress.notes };
+          existingDoc.markModified('notes');
+        }
+        if (progress.atcoderSolved !== undefined) {
+          existingDoc.atcoderSolved = Array.from(new Set(progress.atcoderSolved));
+        }
+        if (progress.atcoderStarred !== undefined) {
+          existingDoc.atcoderStarred = Array.from(new Set(progress.atcoderStarred));
+        }
+        if (progress.atcoderNotes !== undefined) {
+          existingDoc.atcoderNotes = { ...(existingDoc.atcoderNotes || {}), ...progress.atcoderNotes };
+          existingDoc.markModified('atcoderNotes');
+        }
+
+        const saved = await existingDoc.save();
+        return mongoDocToUserRecord(saved);
+      }
+    } catch (e) {
+      console.warn('Mongo updateUserProgress error, falling back to local save:', e);
+    }
+  }
+
+  const users = getAllLocalUsers();
   const index = users.findIndex((u) => u.id === id);
   if (index === -1) {
     throw new Error('User not found');
@@ -142,27 +284,11 @@ export function updateUserProgress(
     users[index].atcoderNotes = { ...(users[index].atcoderNotes || {}), ...progress.atcoderNotes };
   }
 
-  saveUsers(users);
+  saveLocalUsers(users);
   return users[index];
 }
 
-export function findUserByLeetcodeUsername(username: string): UserRecord | undefined {
-  const users = getAllUsers();
-  return users.find((u) => u.leetcodeUsername?.toLowerCase() === username.toLowerCase());
-}
-
-export function findUserByIdentifier(identifier: string): UserRecord | undefined {
-  const clean = identifier.trim().toLowerCase();
-  const users = getAllUsers();
-  return users.find(
-    (u) =>
-      u.email.toLowerCase() === clean ||
-      u.leetcodeUsername?.toLowerCase() === clean ||
-      u.name.toLowerCase() === clean
-  );
-}
-
-export function loginOrCreateLeetcodeUser(data: {
+export async function loginOrCreateLeetcodeUser(data: {
   username: string;
   password?: string;
   realName?: string;
@@ -173,18 +299,67 @@ export function loginOrCreateLeetcodeUser(data: {
   mergeSolved?: number[];
   mergeStarred?: number[];
   mergeNotes?: Record<number, string>;
-}): UserRecord {
-  const users = getAllUsers();
-  const index = users.findIndex((u) => u.leetcodeUsername?.toLowerCase() === data.username.toLowerCase());
+}): Promise<UserRecord> {
+  const cleanUsername = data.username.toLowerCase();
+  const mongo = await connectMongo();
+
+  if (mongo) {
+    try {
+      let doc = await UserModel.findOne({ leetcodeUsername: cleanUsername });
+
+      if (doc) {
+        if (data.password && data.password.trim()) {
+          doc.passwordHash = hashPassword(data.password);
+        }
+        doc.name = data.realName || doc.name || data.username;
+        if (data.avatar) doc.leetcodeAvatar = data.avatar;
+        if (data.rating) doc.leetcodeRating = Math.round(data.rating);
+        if (data.badge) doc.leetcodeBadge = data.badge;
+        if (data.ranking) doc.leetcodeRanking = data.ranking;
+
+        if (data.mergeSolved && data.mergeSolved.length > 0) {
+          doc.solved = Array.from(new Set([...(doc.solved || []), ...data.mergeSolved]));
+        }
+        if (data.mergeStarred && data.mergeStarred.length > 0) {
+          doc.starred = Array.from(new Set([...(doc.starred || []), ...data.mergeStarred]));
+        }
+        if (data.mergeNotes && Object.keys(data.mergeNotes).length > 0) {
+          doc.notes = { ...(doc.notes || {}), ...data.mergeNotes };
+          doc.markModified('notes');
+        }
+
+        const saved = await doc.save();
+        return mongoDocToUserRecord(saved);
+      } else {
+        const newDoc = await UserModel.create({
+          userId: 'lc_' + cleanUsername,
+          name: data.realName || data.username,
+          email: `${cleanUsername}@leetcode.user`,
+          passwordHash: data.password && data.password.trim() ? hashPassword(data.password) : '',
+          solved: data.mergeSolved || [],
+          starred: data.mergeStarred || [],
+          notes: data.mergeNotes || {},
+          leetcodeUsername: data.username,
+          leetcodeRating: data.rating ? Math.round(data.rating) : undefined,
+          leetcodeBadge: data.badge,
+          leetcodeAvatar: data.avatar,
+          leetcodeRanking: data.ranking,
+        });
+        return mongoDocToUserRecord(newDoc);
+      }
+    } catch (e) {
+      console.warn('Mongo loginOrCreateLeetcodeUser error, falling back to local:', e);
+    }
+  }
+
+  const users = getAllLocalUsers();
+  const index = users.findIndex((u) => u.leetcodeUsername?.toLowerCase() === cleanUsername);
 
   if (index !== -1) {
     const user = users[index];
-    // If a password was provided, update/set it
     if (data.password && data.password.trim()) {
       user.passwordHash = hashPassword(data.password);
     }
-
-    // Update existing user's LeetCode stats
     user.name = data.realName || user.name || data.username;
     if (data.avatar) user.leetcodeAvatar = data.avatar;
     if (data.rating) user.leetcodeRating = Math.round(data.rating);
@@ -201,15 +376,14 @@ export function loginOrCreateLeetcodeUser(data: {
       user.notes = { ...(user.notes || {}), ...data.mergeNotes };
     }
 
-    saveUsers(users);
+    saveLocalUsers(users);
     return user;
   }
 
-  // Create new user for this LeetCode account
   const newUser: UserRecord = {
-    id: 'lc_' + data.username.toLowerCase(),
+    id: 'lc_' + cleanUsername,
     name: data.realName || data.username,
-    email: `${data.username.toLowerCase()}@leetcode.user`,
+    email: `${cleanUsername}@leetcode.user`,
     passwordHash: data.password && data.password.trim() ? hashPassword(data.password) : '',
     createdAt: new Date().toISOString(),
     solved: data.mergeSolved || [],
@@ -223,8 +397,6 @@ export function loginOrCreateLeetcodeUser(data: {
   };
 
   users.push(newUser);
-  saveUsers(users);
+  saveLocalUsers(users);
   return newUser;
 }
-
-

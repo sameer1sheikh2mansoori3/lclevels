@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = findUserByIdentifier(identifier);
+    const user = await findUserByIdentifier(identifier);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid username/email or password' },
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       const mergedACStarred = Array.from(new Set([...(user.atcoderStarred || []), ...(mergeAtCoderStarred || [])]));
       const mergedACNotes = { ...(user.atcoderNotes || {}), ...(mergeAtCoderNotes || {}) };
 
-      updateUserProgress(user.id, {
+      await updateUserProgress(user.id, {
         solved: mergedSolved,
         starred: mergedStarred,
         notes: mergedNotes,

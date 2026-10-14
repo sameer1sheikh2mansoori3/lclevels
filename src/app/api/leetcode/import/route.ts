@@ -40,10 +40,10 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { username, solvedIds, titleSlugs, rawText } = body;
 
-    let targetUser = userId ? findUserById(userId) : null;
+    let targetUser = userId ? await findUserById(userId) : null;
 
     if (!targetUser && username) {
-      targetUser = findUserByLeetcodeUsername(username);
+      targetUser = await findUserByLeetcodeUsername(username);
     }
 
     // Fallback: if only one user exists in system and no target specified, assign to that user
@@ -125,7 +125,7 @@ export async function POST(req: Request) {
     const updatedSolvedList = Array.from(solvedSet);
 
     if (targetUser) {
-      updateUserProgress(targetUser.id, { solved: updatedSolvedList });
+      await updateUserProgress(targetUser.id, { solved: updatedSolvedList });
     }
 
     return NextResponse.json(

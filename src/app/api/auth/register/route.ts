@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const existing = findUserByEmail(email);
+    const existing = await findUserByEmail(email);
     if (existing) {
       return NextResponse.json(
         { error: 'An account with this email already exists' },
@@ -38,14 +38,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = createUser(name, email, password);
+    const user = await createUser(name, email, password);
 
     // Merge any initial progress from guest session
     const hasInitialLC = (initialSolved && initialSolved.length > 0) || (initialStarred && initialStarred.length > 0) || (initialNotes && Object.keys(initialNotes).length > 0);
     const hasInitialAC = (initialAtCoderSolved && initialAtCoderSolved.length > 0) || (initialAtCoderStarred && initialAtCoderStarred.length > 0) || (initialAtCoderNotes && Object.keys(initialAtCoderNotes).length > 0);
 
     if (hasInitialLC || hasInitialAC) {
-      updateUserProgress(user.id, {
+      await updateUserProgress(user.id, {
         solved: initialSolved || [],
         starred: initialStarred || [],
         notes: initialNotes || {},
