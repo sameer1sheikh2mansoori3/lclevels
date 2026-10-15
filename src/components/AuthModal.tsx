@@ -34,15 +34,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setError(null);
+      setLoading(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleLeetcodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setSuccessMsg(null);
     setLoading(true);
 
     try {
@@ -63,12 +68,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         throw new Error(data.error || 'LeetCode login failed');
       }
 
-      const count = data.autoSyncedCount !== undefined ? data.autoSyncedCount : (data.user.solved?.length || 0);
-      setSuccessMsg(`🎉 Logged in as @${data.user.leetcodeUsername || data.user.name}! ${count} contest questions synced.`);
-      setTimeout(() => {
-        onSuccess(data.user, data.token);
-        onClose();
-      }, 700);
+      onSuccess(data.user, data.token);
+      onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to connect LeetCode profile');
     } finally {
@@ -118,11 +119,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         throw new Error(data.error || 'Authentication failed');
       }
 
-      setSuccessMsg(`🎉 Welcome, ${data.user.name || data.user.leetcodeUsername}!`);
-      setTimeout(() => {
-        onSuccess(data.user, data.token);
-        onClose();
-      }, 700);
+      onSuccess(data.user, data.token);
+      onClose();
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
     } finally {
@@ -227,14 +225,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="mb-4 p-2.5 rounded-lg bg-rose-950/50 border border-rose-800/60 flex items-center gap-2 text-xs text-rose-300">
             <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
             <span>{error}</span>
-          </div>
-        )}
-
-        {/* Success Alert */}
-        {successMsg && (
-          <div className="mb-4 p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-800/60 flex items-center gap-2 text-xs text-emerald-300">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{successMsg}</span>
           </div>
         )}
 

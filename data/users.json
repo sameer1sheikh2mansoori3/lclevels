@@ -103,10 +103,20 @@
     "email": "vercel_test@example.com",
     "passwordHash": "29cdbac944e30c927029140b51ae0d045df667e34f2cf0b9209be496aa7f919f",
     "createdAt": "2026-10-14T17:29:42.533Z",
-    "solved": [],
+    "solved": [
+      4066,
+      1395,
+      2345,
+      9999,
+      8888
+    ],
     "starred": [],
     "notes": {},
-    "atcoderSolved": [],
+    "atcoderSolved": [
+      "abc380_a",
+      "abc380_b",
+      "abc380_c"
+    ],
     "atcoderStarred": [],
     "atcoderNotes": {}
   },
