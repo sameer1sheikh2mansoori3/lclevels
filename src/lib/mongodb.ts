@@ -1,8 +1,15 @@
 import mongoose from 'mongoose';
 import { UserRecord } from './db';
 
-const rawUri = process.env.MONGO_URI || process.env.MONGODB_URI || '';
-const MONGO_URI = rawUri.trim();
+export function getMongoUri(): string {
+  return (
+    process.env.MONGO_URI ||
+    process.env.MONGODB_URI ||
+    process.env.MONGODB_URL ||
+    process.env.DATABASE_URL ||
+    ''
+  ).trim();
+}
 
 interface CachedMongo {
   conn: typeof mongoose | null;
@@ -17,7 +24,8 @@ if (!cached) {
 }
 
 export async function isMongoAvailable(): Promise<boolean> {
-  if (!MONGO_URI) return false;
+  const uri = getMongoUri();
+  if (!uri) return false;
   try {
     const conn = await connectMongo();
     return !!conn && conn.connection.readyState === 1;
@@ -27,7 +35,8 @@ export async function isMongoAvailable(): Promise<boolean> {
 }
 
 export async function connectMongo(): Promise<typeof mongoose | null> {
-  if (!MONGO_URI) {
+  const uri = getMongoUri();
+  if (!uri) {
     return null;
   }
 
@@ -49,7 +58,7 @@ export async function connectMongo(): Promise<typeof mongoose | null> {
 
     cached.lastAttempt = now;
     cached.promise = mongoose
-      .connect(MONGO_URI, opts)
+      .connect(uri, opts)
       .then((m) => {
         console.log('✅ Connected to MongoDB successfully!');
         cached.failed = false;

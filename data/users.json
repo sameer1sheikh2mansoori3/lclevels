@@ -24,7 +24,10 @@
     "leetcodeUsername": "sameer234",
     "leetcodeAvatar": "https://assets.leetcode.com/users/sameer234/avatar_1710138666.png",
     "leetcodeRating": 1557,
-    "leetcodeRanking": 57576
+    "leetcodeRanking": 57576,
+    "atcoderSolved": [],
+    "atcoderStarred": [],
+    "atcoderNotes": {}
   },
   {
     "id": "lc_sameerking",
@@ -91,6 +94,34 @@
     "starred": [],
     "notes": {},
     "atcoderSolved": [],
+    "atcoderStarred": [],
+    "atcoderNotes": {}
+  },
+  {
+    "id": "user_1791998982532_i40qy",
+    "name": "Vercel User",
+    "email": "vercel_test@example.com",
+    "passwordHash": "29cdbac944e30c927029140b51ae0d045df667e34f2cf0b9209be496aa7f919f",
+    "createdAt": "2026-10-14T17:29:42.533Z",
+    "solved": [],
+    "starred": [],
+    "notes": {},
+    "atcoderSolved": [],
+    "atcoderStarred": [],
+    "atcoderNotes": {}
+  },
+  {
+    "id": "user_1792050365125_fh4ub",
+    "name": "sameer234",
+    "email": "sameer234@gmail.com",
+    "passwordHash": "373dd7ec841f41e772d1ea5c6f38206a80891d24766a8fae19ee2afaed74b155",
+    "createdAt": "2026-10-15T07:46:05.127Z",
+    "solved": [],
+    "starred": [],
+    "notes": {},
+    "atcoderSolved": [
+      "abc001_1"
+    ],
     "atcoderStarred": [],
     "atcoderNotes": {}
   }

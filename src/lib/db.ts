@@ -23,27 +23,68 @@ export interface UserRecord {
   leetcodeRanking?: number;
 }
 
-// Local JSON File Database Fallback
-const DATA_DIR = path.join(process.cwd(), 'data');
+// Local JSON File Database Fallback (Serverless Safe: /tmp or In-Memory)
+const isServerless = !!(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.LAMBDA_TASK_ROOT ||
+  (process.env.PWD && process.env.PWD.includes('/var/task'))
+);
+
+const DATA_DIR = isServerless ? '/tmp/data' : path.join(process.cwd(), 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const BUNDLED_FILE = path.join(process.cwd(), 'data', 'users.json');
+
+// In-memory global store so read-only filesystems (Vercel / Lambda) never fail
+let memoryUsers: UserRecord[] = (global as any).__memoryUsers || [];
+(global as any).__memoryUsers = memoryUsers;
 
 function ensureDataFile() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-  if (!fs.existsSync(USERS_FILE)) {
-    fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (!fs.existsSync(USERS_FILE)) {
+      if (fs.existsSync(BUNDLED_FILE)) {
+        try {
+          const bundledContent = fs.readFileSync(BUNDLED_FILE, 'utf8');
+          fs.writeFileSync(USERS_FILE, bundledContent);
+          return;
+        } catch (e) {}
+      }
+      fs.writeFileSync(USERS_FILE, JSON.stringify([], null, 2));
+    }
+  } catch (e) {
+    // Suppress EROFS errors completely
   }
 }
 
 export function getAllLocalUsers(): UserRecord[] {
+  if (memoryUsers.length === 0) {
+    try {
+      if (fs.existsSync(BUNDLED_FILE)) {
+        const bundled = JSON.parse(fs.readFileSync(BUNDLED_FILE, 'utf8') || '[]');
+        if (Array.isArray(bundled) && bundled.length > 0) {
+          memoryUsers = bundled;
+          (global as any).__memoryUsers = memoryUsers;
+        }
+      }
+    } catch (e) {}
+  }
+
   ensureDataFile();
   try {
-    const content = fs.readFileSync(USERS_FILE, 'utf8');
-    return JSON.parse(content || '[]');
-  } catch (e) {
-    return [];
-  }
+    if (fs.existsSync(USERS_FILE)) {
+      const content = fs.readFileSync(USERS_FILE, 'utf8');
+      const parsed = JSON.parse(content || '[]');
+      if (Array.isArray(parsed) && parsed.length >= memoryUsers.length) {
+        memoryUsers = parsed;
+        (global as any).__memoryUsers = memoryUsers;
+      }
+    }
+  } catch (e) {}
+
+  return memoryUsers;
 }
 
 export function getAllUsers(): UserRecord[] {
@@ -51,8 +92,16 @@ export function getAllUsers(): UserRecord[] {
 }
 
 function saveLocalUsers(users: UserRecord[]) {
-  ensureDataFile();
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  // Always update in-memory cache first so operations succeed immediately
+  memoryUsers = users;
+  (global as any).__memoryUsers = memoryUsers;
+
+  try {
+    ensureDataFile();
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  } catch (e) {
+    // Safely ignore EROFS in read-only environments
+  }
 }
 
 export function hashPassword(password: string): string {
